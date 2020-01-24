@@ -1,0 +1,264 @@
+<html>
+<head>
+<title>Deep Learning Project</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>  
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: lowercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;	
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 1160px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+table td img {
+  text-align: center;
+  vertical-align: middle;
+}
+
+#contents a {
+}
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1>Qixuan Hou </h1>
+</div>
+</div>
+<div class="container">
+
+<h2> Project 6 / Deep Learning</h2>
+<p>
+	This project is an introduction to deep learning tools for computer vision. Deep convolutional networks is designed and changed for scene recognition using the MatConvNet toolbox. In project 4, we used a bag of features representations to do scene classification and achieved about 70% accuracy. For this project, a better accuracy can be achieved.
+
+The project has two parts:
+<li>Part 1 - training a deep network from scratch</li>
+<li>Part 2 - fine-tuning a pre-trained deep network</li>
+</p>
+
+<h3>Part 1 - train a deep network</h3>
+<p>
+	The previous code of part 1 can only achieve about 25% accuracy. Problems are needed to be solved to improve the accuracy.
+</p>
+<img src="0.png"  width="48%"/>
+
+<h4>Jitter - don't have enough training data</h4>
+<p>
+I updated getBatch() function to include flipped images. However, I randomly chose images to flip. The accuracy does not change.
+<pre><code>
+for i = 1:1:numImg
+    if (rand(1) < 0.5)
+        im(:, :, 1, i) = fliplr(im(:, :, 1, i));
+    end
+end
+</code></pre>
+<img src="1.png"  width="48%"/>
+<h4>not zero-centered image</h4>
+Modify proj6_part1_setup_data.m so that it computes the mean image and then subtracts the mean from all images before returning imdb. The accuracy is around 50%. 
+<pre><code>
+cur_image = cur_image - mean(mean(cur_image)); 
+</code></pre>
+
+
+<img src="2.png"  width="48%"/>
+
+
+<h4>not regularized</h4>
+We use drop out regularization by adding drop out layer. Drop out layer randomly turns off network connections at training time to fight overfitting. This prevents a unit in one layer from relying too strongly on a single unit in the previous layer. 
+<pre><code>
+net.layers{end+1} = struct('type','dropout','rate',0.5);
+</code></pre>
+
+
+
+<h4>not regularized</h4>
+We use drop out regularization by adding drop out layer. Drop out layer randomly turns off network connections at training time to fight overfitting. This prevents a unit in one layer from relying too strongly on a single unit in the previous layer. 
+<pre><code>
+net.layers{end+1} = struct('type','dropout','rate',0.5);
+</code></pre>
+<img src="3.png"  width="48%"/>
+
+
+
+<h4>isn't deep</h4>
+Adding another  conv layer, max-pool layer and relu layer, as well. 
+The learning result of the deeper network is not good as the reulst fo the shallow network. The reason might be that the number of epoch is not big enough for reaching the best learning result.
+
+<pre><code>
+net.layers{end+1} = struct('type', 'conv', ...
+                           'weights', {{f*randn(5,5,1,10, 'single'), zeros(1, 10, 'single')}}, ...
+                           'stride', 1, ...
+                           'pad', 0, ...
+                           'name', 'conv1') ;
+                       
+net.layers{end+1} = struct('type', 'pool', ...
+                           'method', 'max', ...
+                           'pool', [3 3], ...
+                           'stride', 2, ...
+                           'pad', 0) ;
+
+net.layers{end+1} = struct('type', 'relu') ;
+</code></pre>
+<img src="4.png"  width="48%"/>
+
+
+<h4>is slow</h4>
+Add normalization to help. In particular, let's add a batch normalization layer after each convolutional layer except for the last.
+<pre><code>
+net = insertBnorm(net, layer_index) 
+</code></pre>
+<img src="5.png"  width="48%"/>
+
+</p>
+
+<h3>Part 2 - fine-tuning a pre-trained deep network</h3>
+
+<h4>proj6_part2_cnn_init.m </h4>
+<li>The final two layers, fc8 and the softmax layer, should be removed</li>
+<li>The dropout layers used to train VGG-F are missing from the pretrained model</li>
+<pre><code>
+net.layers{end}={};
+net.layers{end-1}={};
+</code></pre>
+
+<pre><code>
+net.layers{end-3} = struct('type','dropout','rate',0.3);
+net.layers{end} = struct('type','dropout','rate',0.3);
+</code></pre>
+
+<img src="network.png"  width="48%"/><img src="network1.png"  width="18%"/>
+
+<h4>proj6_part2_setup_data.m </h4>
+<li>The input images need to be resized to 224x224</li>
+<li>Change grey image into RGB image</li>
+<li>Be normalized by subtracting the average image</li>
+<pre><code>
+avg1=mean(mean(cur_image(:,:,1)));      
+avg2=mean(mean(cur_image(:,:,2)));      
+avg3=mean(mean(cur_image(:,:,3)));      
+imdb.images.data(:,:,1,image_counter) = cur_image(:,:,1)-avg1*ones(224,224);        
+imdb.images.data(:,:,2,image_counter) = cur_image(:,:,2)-avg2*ones(224,224);        
+imdb.images.data(:,:,3,image_counter) = cur_image(:,:,3)-avg3*ones(224,224);
+</code></pre>
+
+<img src="result.png"  width="48%"/>
+<img src="filter.png"  width="48%"/>
+
+<p>The final result close to 90% with less than 20 epochs.</p>
+</div>
+</body>
+</html>
